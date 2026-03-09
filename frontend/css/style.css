@@ -33,7 +33,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 
 body {
   font-family: Inter, system-ui, -apple-system, sans-serif;
@@ -69,7 +69,7 @@ p { color: var(--text-secondary); }
 .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 .container-sm { max-width: 640px; margin: 0 auto; padding: 0 24px; }
 .container-md { max-width: 900px; margin: 0 auto; padding: 0 24px; }
-.page-wrap { padding: 112px 0 72px; }
+.page-wrap { padding: 112px 0 72px; overflow-x: hidden; max-width: 100vw; }
 
 .navbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
@@ -639,15 +639,15 @@ select.form-control {
   }
 
   /* ── Page layout ──────────────────────────────────────── */
-  .page-wrap { padding: 80px 0 48px; }
-  .container { padding: 0 16px; }
-  .container-sm { padding: 0 16px; }
-  .container-md { padding: 0 16px; }
+  .page-wrap { padding: 80px 0 48px; max-width: 100vw; overflow-x: hidden; }
+  .container { padding: 0 16px; max-width: 100%; }
+  .container-sm { padding: 0 16px; max-width: 100%; }
+  .container-md { padding: 0 16px; max-width: 100%; }
 
   /* ── Cards ─────────────────────────────────────────────── */
   .grid-2 { grid-template-columns: 1fr; }
-  .card { padding: 18px; border-radius: 16px; }
-  .card-sm { padding: 14px; }
+  .card { padding: 18px; border-radius: 16px; overflow: hidden; }
+  .card-sm { padding: 14px; overflow: hidden; }
 
   /* ── Buttons ───────────────────────────────────────────── */
   .hero-actions { flex-direction: column; align-items: stretch; }
@@ -665,8 +665,8 @@ select.form-control {
   .feature-card { padding: 18px; }
 
   /* ── Share code ─────────────────────────────────────────── */
-  .share-code-value { font-size: 1.8rem; letter-spacing: 0.14em; }
-  .share-code-box { padding: 20px 14px; }
+  .share-code-value { font-size: clamp(1.2rem, 7vw, 1.8rem); letter-spacing: 0.1em; }
+  .share-code-box { padding: 18px 12px; overflow: hidden; }
 
   /* ── Code inputs ────────────────────────────────────────── */
   .code-inputs { gap: 6px; margin: 20px 0; }
@@ -773,7 +773,7 @@ select.form-control {
   h2 { font-size: 1.2rem; }
   .stats-row { grid-template-columns: 1fr; }
   .code-input { width: 38px; height: 48px; font-size: 1.15rem; border-radius: 8px; }
-  .share-code-value { font-size: 1.4rem; letter-spacing: 0.08em; }
+  .share-code-value { font-size: clamp(1.1rem, 6vw, 1.4rem); letter-spacing: 0.06em; }
   .stat-number { font-size: 1.3rem; }
   .hero h1 { font-size: 1.5rem; }
   .hero p { font-size: 0.88rem; }
