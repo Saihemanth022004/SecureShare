@@ -328,6 +328,51 @@ p { color: var(--text-secondary); }
 }
 .result-icon { font-size: 3rem; margin-bottom: 10px; display: block; }
 
+/* ── Scan Details ────────────────────────────────────────────────────────── */
+.scan-details-card { }
+.scan-details-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 1rem;
+}
+.scan-details-list {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.88rem;
+}
+.scan-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+}
+.scan-row-last { border-bottom: none; }
+.scan-label {
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+.scan-value {
+  font-weight: 600;
+  text-align: right;
+  min-width: 0;
+}
+.scan-filename {
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scan-muted {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 .share-code-box {
   background: #ffffff;
   border: 1px solid var(--border);
@@ -684,9 +729,13 @@ select.form-control {
 
   /* ── Result page layout ──────────────────────────────────── */
   [data-page="result"] .grid-2 { gap: 16px !important; margin-bottom: 16px !important; }
-  [data-page="result"] .card h3 { font-size: 0.9rem; margin-bottom: 14px !important; }
-  [data-page="result"] .card [style*="font-size:.9rem"] { font-size: 0.82rem !important; }
-  [data-page="result"] #res-filename { max-width: 55% !important; font-size: 0.82rem; }
+
+  /* ── Scan details mobile ─────────────────────────────────── */
+  .scan-details-title { font-size: 0.9rem; margin-bottom: 12px; }
+  .scan-details-list { font-size: 0.82rem; }
+  .scan-row { padding: 10px 0; }
+  .scan-label { font-size: 0.8rem; }
+  .scan-filename { max-width: 55%; font-size: 0.82rem; }
 
   /* ── Result action buttons ───────────────────────────────── */
   .result-actions { flex-direction: column; }
@@ -787,7 +836,9 @@ select.form-control {
   .result-banner h2 { font-size: 1.05rem; }
   .share-code-box { padding: 16px 10px; border-radius: 14px; }
   .qr-box img { width: 110px; height: 110px; }
-  [data-page="result"] #res-filename { max-width: 50% !important; font-size: 0.78rem; }
+  .scan-details-list { font-size: 0.78rem; }
+  .scan-label { font-size: 0.76rem; }
+  .scan-filename { max-width: 50%; font-size: 0.78rem; }
   .download-url-card { padding: 12px !important; }
 }
 
