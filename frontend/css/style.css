@@ -677,11 +677,28 @@ select.form-control {
   .upload-icon { font-size: 2.2rem; }
 
   /* ── Result banner ──────────────────────────────────────── */
-  .result-banner { padding: 22px 16px; border-radius: 16px; }
-  .result-icon svg { width: 36px !important; height: 36px !important; }
+  .result-banner { padding: 20px 14px; border-radius: 14px; margin-bottom: 16px; }
+  .result-banner h2 { font-size: 1.2rem; }
+  .result-banner p { font-size: 0.85rem; }
+  .result-icon svg { width: 32px !important; height: 32px !important; }
+
+  /* ── Result page layout ──────────────────────────────────── */
+  [data-page="result"] .grid-2 { gap: 16px !important; margin-bottom: 16px !important; }
+  [data-page="result"] .card h3 { font-size: 0.9rem; margin-bottom: 14px !important; }
+  [data-page="result"] .card [style*="font-size:.9rem"] { font-size: 0.82rem !important; }
+  [data-page="result"] #res-filename { max-width: 55% !important; font-size: 0.82rem; }
+
+  /* ── Result action buttons ───────────────────────────────── */
+  .result-actions { flex-direction: column; }
+  .result-actions .btn { width: 100%; justify-content: center; }
+
+  /* ── Download URL card ───────────────────────────────────── */
+  [data-page="result"] [style*="Direct Download URL"] { font-size: 0.7rem !important; }
+  [data-page="result"] #download-link { font-size: 0.78rem !important; }
 
   /* ── QR box ─────────────────────────────────────────────── */
-  .qr-box img { width: 140px; height: 140px; }
+  .qr-box { padding: 10px; }
+  .qr-box img { width: 130px; height: 130px; }
 
   /* ── Stats row ──────────────────────────────────────────── */
   .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -765,6 +782,13 @@ select.form-control {
   .container-md { padding: 0 12px; }
   .card { padding: 14px; }
   .btn { padding: 10px 14px; font-size: 0.84rem; }
+
+  .result-banner { padding: 16px 12px; }
+  .result-banner h2 { font-size: 1.05rem; }
+  .share-code-box { padding: 16px 10px; border-radius: 14px; }
+  .qr-box img { width: 110px; height: 110px; }
+  [data-page="result"] #res-filename { max-width: 50% !important; font-size: 0.78rem; }
+  .download-url-card { padding: 12px !important; }
 }
 
 /* ══════════════════════════════════════════════════════════════
