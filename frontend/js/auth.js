@@ -1,21 +1,13 @@
 (function () {
   let authReady = null;
 
+  let _cfgCache = null;
   async function getFirebaseConfig() {
-    const CACHE_KEY = 'firebase_config';
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (cached) {
-      try {
-        const cfg = JSON.parse(cached);
-        if (cfg.apiKey && cfg.projectId) return cfg;
-      } catch {}
-    }
+    if (_cfgCache) return _cfgCache;
+    localStorage.removeItem('firebase_config');
     const res = await fetch('/api/firebase-config');
-    const cfg = await res.json();
-    if (cfg.apiKey && cfg.projectId) {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(cfg));
-    }
-    return cfg;
+    _cfgCache = await res.json();
+    return _cfgCache;
   }
 
   async function initAuth() {
