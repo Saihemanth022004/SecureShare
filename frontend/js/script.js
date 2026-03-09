@@ -4,20 +4,6 @@
 
 const API_BASE = '';   // Flask serves everything from the same origin
 
-// Force bottom-nav visible on mobile (handles cached HTML)
-(function(){
-  var bn = document.querySelector('.bottom-nav');
-  if (bn && window.innerWidth <= 768) {
-    bn.style.display = 'block';
-    document.body.style.paddingBottom = '68px';
-  }
-  window.addEventListener('resize', function(){
-    var b = document.querySelector('.bottom-nav');
-    if (!b) return;
-    if (window.innerWidth <= 768) { b.style.display = 'block'; document.body.style.paddingBottom = '68px'; }
-    else { b.style.display = 'none'; document.body.style.paddingBottom = ''; }
-  });
-})();
 
 async function getAuthHeaders() {
   if (!window.AppAuth) return {};
@@ -487,7 +473,7 @@ async function loadDashboard() {
 
     tbody.innerHTML = '';
     if (!data.recent_uploads || data.recent_uploads.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding:32px;color:var(--text-muted)">No files uploaded yet</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="padding:32px;color:var(--text-muted)">No files uploaded yet</td></tr>';
       return;
     }
     data.recent_uploads.forEach(f => {
@@ -514,7 +500,7 @@ async function loadDashboard() {
         </tr>`;
     });
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding:24px;color:var(--danger)">Failed to load data</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="padding:24px;color:var(--danger)">Failed to load data</td></tr>';
   }
 }
 
