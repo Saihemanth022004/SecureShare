@@ -1,0 +1,6 @@
+.env
+serviceAccountKey.json
+__pycache__/
+*.pyc
+test_files/
+eicar_test.*

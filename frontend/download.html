@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Download File – SecureShare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body data-page="download">
+
+  <nav class="navbar">
+    <div class="container">
+      <a class="nav-brand" href="/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="url(#g1)" stroke-width="2" stroke-linecap="round">
+          <defs>
+            <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#6366f1" />
+              <stop offset="100%" stop-color="#06b6d4" />
+            </linearGradient>
+          </defs>
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        <span>SecureShare</span>
+      </a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/upload">Upload</a>
+        <a href="/download" class="active">Download</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="container-sm">
+
+      <div class="text-center mb-24">
+        <h1>Download <span class="gradient-text">Securely</span></h1>
+        <p style="margin-top:12px">Enter the 6-digit code shared with you to download the file.</p>
+      </div>
+
+      <div class="card text-center">
+
+        <div style="margin-bottom:12px;display:flex;justify-content:center"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></div>
+        <h2 style="margin-bottom:8px">Enter Your Code</h2>
+        <p style="font-size:.9rem">Type each digit in the boxes below — they'll auto-advance.</p>
+
+        <!-- 6-digit input -->
+        <div class="code-inputs" id="code-inputs">
+          <input class="code-input" type="text" inputmode="numeric" maxlength="1" autocomplete="off" />
+          <input class="code-input" type="text" inputmode="numeric" maxlength="1" autocomplete="off" />
+          <input class="code-input" type="text" inputmode="numeric" maxlength="1" autocomplete="off" />
+          <input class="code-input" type="text" inputmode="numeric" maxlength="1" autocomplete="off" />
+          <input class="code-input" type="text" inputmode="numeric" maxlength="1" autocomplete="off" />
+          <input class="code-input" type="text" inputmode="numeric" maxlength="1" autocomplete="off" />
+        </div>
+
+        <button id="lookup-btn" class="btn btn-primary w-full btn-lg" style="margin-top:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Find File
+        </button>
+
+        <!-- Password field (shown if file is password protected) -->
+        <div id="password-box" class="hidden" style="margin-top:20px;text-align:left">
+          <div class="alert alert-info" style="margin-bottom:14px">
+            <span class="alert-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <div>This file is password protected. Enter the password to continue.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="download-password">Password</label>
+            <input class="form-control" id="download-password" type="password" placeholder="Enter file password" />
+          </div>
+          <button id="verify-password-btn" class="btn btn-primary w-full">Unlock File</button>
+        </div>
+
+        <!-- File info (shown after lookup) -->
+        <div id="file-info-box" class="hidden" style="margin-top:28px;text-align:left">
+          <div class="divider"></div>
+
+          <div class="alert alert-success" style="margin-bottom:16px">
+            <span class="alert-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+            <div>File found and verified safe. Ready to download.</div>
+          </div>
+
+          <div class="file-preview" style="margin-bottom:20px">
+            <span class="file-icon" id="dl-icon" style="display:inline-flex;align-items:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+            <div class="file-info">
+              <div class="file-name" id="dl-filename">—</div>
+              <div class="file-size" style="color:var(--text-muted)">
+                Type: <span id="dl-filetype" style="color:var(--accent2);font-weight:600">—</span>
+                &nbsp;·&nbsp; Size: <span id="dl-filesize">—</span>
+              </div>
+            </div>
+          </div>
+
+          <a id="download-file-btn" href="#" class="btn btn-success w-full btn-lg hidden" download>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download File
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Instructions card -->
+      <div class="card mt-24 card-sm" style="background:transparent;border-style:dashed">
+        <h3 style="margin-bottom:16px;font-size:.95rem;display:inline-flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> How to use your share code</h3>
+        <div style="display:flex;flex-direction:column;gap:12px;font-size:.88rem;color:var(--text-secondary)">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <span style="color:var(--accent);font-weight:700;flex-shrink:0">①</span>
+            The sender uploads a file and receives a 6-digit code.
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <span style="color:var(--accent);font-weight:700;flex-shrink:0">②</span>
+            They share that code with you via message, email, or voice.
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <span style="color:var(--accent);font-weight:700;flex-shrink:0">③</span>
+            Enter the 6 digits here and click <strong style="color:var(--text-primary)">Find File</strong>.
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <span style="color:var(--accent);font-weight:700;flex-shrink:0">④</span>
+            Click <strong style="color:var(--text-primary)">Download File</strong> to save it to your device.
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-16 card-sm" style="background:transparent">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="display:inline-flex;align-items:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>
+          <div>
+            <h3 style="font-size:.95rem;margin-bottom:4px">Or scan the QR code</h3>
+            <p style="font-size:.85rem">If the sender shared a QR code, scan it with your phone camera to download
+              directly.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>SecureShare © 2026 &nbsp;·&nbsp; AI-Powered Secure File Sharing</p>
+    </div>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/script.js"></script>
+</body>
+
+</html>

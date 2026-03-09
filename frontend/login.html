@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – SecureShare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body data-page="login">
+
+  <nav class="navbar">
+    <div class="container">
+      <a class="nav-brand" href="/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        <span>SecureShare</span>
+      </a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/upload">Upload</a>
+        <a href="/download">Download</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/login" class="active">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="container-sm">
+      <div class="card">
+        <div class="text-center" style="margin-bottom:20px">
+          <h1>Account Access</h1>
+          <p style="margin-top:10px">Sign in or create an account to upload and manage your files.</p>
+        </div>
+
+        <!-- Auth Tabs -->
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-tab="signin">Sign In</button>
+          <button class="auth-tab" data-tab="signup">Create Account</button>
+        </div>
+
+        <!-- Google Sign-In -->
+        <button id="google-btn" class="btn btn-outline w-full" style="margin-bottom:16px;gap:10px;font-size:.95rem">
+          <svg width="20" height="20" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+            <path fill="none" d="M0 0h48v48H0z" />
+          </svg>
+          Continue with Google
+        </button>
+
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="flex:1;height:1px;background:var(--border)"></div>
+          <span style="font-size:.8rem;color:var(--text-muted)">or use email</span>
+          <div style="flex:1;height:1px;background:var(--border)"></div>
+        </div>
+
+        <!-- ── Sign In Form ─────────────────────────────────────────── -->
+        <div id="signin-form" class="auth-form">
+          <div class="form-group">
+            <label class="form-label" for="signin-email">Email</label>
+            <input class="form-control" id="signin-email" type="email" placeholder="you@example.com" autocomplete="email" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signin-password">Password</label>
+            <div class="password-wrapper">
+              <input class="form-control" id="signin-password" type="password" placeholder="Enter password" autocomplete="current-password" />
+              <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-closed hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:6px">
+              <a href="#" id="forgot-link" style="font-size:.82rem;color:var(--accent2)">Forgot password?</a>
+            </div>
+          </div>
+
+          <button id="login-btn" class="btn btn-primary w-full btn-lg">
+            <span class="btn-label">Sign In</span>
+            <span class="btn-spinner"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity=".25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg></span>
+          </button>
+        </div>
+
+        <!-- ── Sign Up Form ─────────────────────────────────────────── -->
+        <div id="signup-form" class="auth-form hidden">
+          <div class="form-group">
+            <label class="form-label" for="signup-name">Display Name</label>
+            <input class="form-control" id="signup-name" type="text" placeholder="Your name" autocomplete="name" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup-email">Email</label>
+            <input class="form-control" id="signup-email" type="email" placeholder="you@example.com" autocomplete="email" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup-password">Password</label>
+            <div class="password-wrapper">
+              <input class="form-control" id="signup-password" type="password" placeholder="At least 6 characters" autocomplete="new-password" />
+              <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-closed hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup-confirm">Confirm Password</label>
+            <div class="password-wrapper">
+              <input class="form-control" id="signup-confirm" type="password" placeholder="Re-enter password" autocomplete="new-password" />
+            </div>
+          </div>
+
+          <button id="signup-btn" class="btn btn-primary w-full btn-lg">
+            <span class="btn-label">Create Account</span>
+            <span class="btn-spinner"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity=".25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg></span>
+          </button>
+        </div>
+
+        <p id="auth-note" style="margin-top:14px;font-size:.85rem;color:var(--text-muted)"></p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>SecureShare © 2026 · Firebase Auth Enabled</p>
+    </div>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/script.js"></script>
+  <script>
+    const AUTH_ERRORS = {
+      'auth/user-not-found': 'No account found with this email.',
+      'auth/wrong-password': 'Incorrect password. Try again or reset it.',
+      'auth/email-already-in-use': 'An account with this email already exists. Switch to Sign In.',
+      'auth/weak-password': 'Password must be at least 6 characters.',
+      'auth/invalid-email': 'Please enter a valid email address.',
+      'auth/too-many-requests': 'Too many attempts. Please try again later.',
+      'auth/network-request-failed': 'Network error. Check your connection.',
+      'auth/popup-closed-by-user': 'Sign-in popup was closed. Try again.',
+      'auth/invalid-credential': 'Invalid email or password. Please check and try again.',
+      'auth/missing-password': 'Please enter your password.',
+    };
+
+    function friendlyError(e) {
+      return AUTH_ERRORS[e?.code] || e?.message || 'Something went wrong. Please try again.';
+    }
+
+    function setNote(msg, ok) {
+      const el = document.getElementById('auth-note');
+      el.textContent = msg;
+      el.style.color = ok ? 'var(--success)' : 'var(--danger)';
+    }
+
+    function clearNote() {
+      document.getElementById('auth-note').textContent = '';
+    }
+
+    function setLoading(btn, loading) {
+      btn.classList.toggle('loading', loading);
+      btn.disabled = loading;
+    }
+
+    // ── Tab switching ──────────────────────────────────────────
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.dataset.tab;
+        document.getElementById('signin-form').classList.toggle('hidden', target !== 'signin');
+        document.getElementById('signup-form').classList.toggle('hidden', target !== 'signup');
+        clearNote();
+      });
+    });
+
+    // ── Password visibility toggles ───────────────────────────
+    document.querySelectorAll('.password-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = btn.parentElement.querySelector('input');
+        const showing = input.type === 'password';
+        input.type = showing ? 'text' : 'password';
+        btn.querySelector('.eye-open').classList.toggle('hidden', showing);
+        btn.querySelector('.eye-closed').classList.toggle('hidden', !showing);
+      });
+    });
+
+    // ── Main auth logic ───────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        await AppAuth.initAuth();
+        const auth = window.firebase.auth();
+        if (auth.currentUser) {
+          window.location.href = '/upload';
+          return;
+        }
+
+        // Google Sign-In
+        document.getElementById('google-btn').addEventListener('click', async () => {
+          clearNote();
+          try {
+            const provider = new window.firebase.auth.GoogleAuthProvider();
+            await auth.signInWithPopup(provider);
+            window.location.href = '/upload';
+          } catch (e) {
+            setNote(friendlyError(e), false);
+          }
+        });
+
+        // Sign In
+        const loginBtn = document.getElementById('login-btn');
+        loginBtn.addEventListener('click', async () => {
+          const email = document.getElementById('signin-email').value.trim();
+          const password = document.getElementById('signin-password').value;
+          clearNote();
+          if (!email) { setNote('Please enter your email address.', false); document.getElementById('signin-email').focus(); return; }
+          if (!password) { setNote('Please enter your password.', false); document.getElementById('signin-password').focus(); return; }
+
+          setLoading(loginBtn, true);
+          try {
+            await auth.signInWithEmailAndPassword(email, password);
+            window.location.href = '/upload';
+          } catch (e) {
+            setNote(friendlyError(e), false);
+            setLoading(loginBtn, false);
+          }
+        });
+
+        // Sign Up
+        const signupBtn = document.getElementById('signup-btn');
+        signupBtn.addEventListener('click', async () => {
+          const name = document.getElementById('signup-name').value.trim();
+          const email = document.getElementById('signup-email').value.trim();
+          const password = document.getElementById('signup-password').value;
+          const confirm = document.getElementById('signup-confirm').value;
+          clearNote();
+
+          if (!name) { setNote('Please enter your display name.', false); document.getElementById('signup-name').focus(); return; }
+          if (!email) { setNote('Please enter your email address.', false); document.getElementById('signup-email').focus(); return; }
+          if (!password) { setNote('Please enter a password.', false); document.getElementById('signup-password').focus(); return; }
+          if (password.length < 6) { setNote('Password must be at least 6 characters.', false); document.getElementById('signup-password').focus(); return; }
+          if (password !== confirm) { setNote('Passwords do not match.', false); document.getElementById('signup-confirm').focus(); return; }
+
+          setLoading(signupBtn, true);
+          try {
+            const cred = await auth.createUserWithEmailAndPassword(email, password);
+            await cred.user.updateProfile({ displayName: name });
+            setNote('Account created! Redirecting…', true);
+            setTimeout(() => { window.location.href = '/upload'; }, 600);
+          } catch (e) {
+            setNote(friendlyError(e), false);
+            setLoading(signupBtn, false);
+          }
+        });
+
+        // Forgot Password
+        document.getElementById('forgot-link').addEventListener('click', async (e) => {
+          e.preventDefault();
+          const email = document.getElementById('signin-email').value.trim();
+          if (!email) {
+            setNote('Enter your email above, then click "Forgot password?" again.', false);
+            document.getElementById('signin-email').focus();
+            return;
+          }
+          try {
+            await auth.sendPasswordResetEmail(email);
+            setNote('Password reset email sent to ' + email + '. Check your inbox.', true);
+          } catch (e) {
+            setNote(friendlyError(e), false);
+          }
+        });
+
+        // Enter key submits the active form
+        document.getElementById('signin-password').addEventListener('keydown', e => {
+          if (e.key === 'Enter') loginBtn.click();
+        });
+        document.getElementById('signin-email').addEventListener('keydown', e => {
+          if (e.key === 'Enter') document.getElementById('signin-password').focus();
+        });
+        document.getElementById('signup-confirm').addEventListener('keydown', e => {
+          if (e.key === 'Enter') signupBtn.click();
+        });
+
+      } catch (e) {
+        setNote(friendlyError(e), false);
+      }
+    });
+  </script>
+</body>
+
+</html>

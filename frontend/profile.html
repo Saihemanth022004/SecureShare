@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Profile – SecureShare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body data-page="profile">
+
+  <nav class="navbar">
+    <div class="container">
+      <a class="nav-brand" href="/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="url(#g1)" stroke-width="2" stroke-linecap="round">
+          <defs>
+            <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#6366f1" />
+              <stop offset="100%" stop-color="#06b6d4" />
+            </linearGradient>
+          </defs>
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        <span>SecureShare</span>
+      </a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/upload">Upload</a>
+        <a href="/download">Download</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/profile" class="active">Profile</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="container-sm">
+
+      <div class="card" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:20px">
+        <img id="profile-avatar" alt="Profile Avatar" src="" width="88" height="88"
+          style="border-radius:50%;border:1px solid var(--border);background:#fff;object-fit:cover" />
+        <div>
+          <h1 style="font-size:1.8rem;margin-bottom:8px">User Profile</h1>
+          <p>Manage your account details for SecureShare.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label" for="profile-name">Display Name</label>
+          <input class="form-control" id="profile-name" type="text" placeholder="Enter your display name" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <div class="form-control" id="profile-email" style="display:flex;align-items:center;min-height:44px">—</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">User ID</label>
+          <div class="form-control" id="profile-uid"
+            style="display:flex;align-items:center;min-height:44px;font-family:monospace;font-size:.82rem;word-break:break-all">—</div>
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button id="save-profile-btn" class="btn btn-primary">Save Profile</button>
+          <button id="reset-password-btn" class="btn btn-outline">Send Password Reset Email</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>SecureShare © 2026 &nbsp;·&nbsp; AI-Powered Secure File Sharing</p>
+    </div>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/script.js"></script>
+</body>
+
+</html>
