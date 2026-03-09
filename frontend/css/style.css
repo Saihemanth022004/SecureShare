@@ -711,7 +711,11 @@ select.form-control {
   .form-control { font-size: 16px; }
 
   /* ── Footer ─────────────────────────────────────────────── */
-  footer { padding: 20px 0; font-size: 0.78rem; }
+  footer { padding: 20px 0 80px; font-size: 0.78rem; }
+
+  /* ── Bottom nav: visible on mobile ─────────────────────── */
+  .bottom-nav { display: block; }
+  body { padding-bottom: 64px; }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -795,4 +799,41 @@ select.form-control {
 .btn.loading .btn-spinner { display: inline-flex; }
 .btn.loading .btn-label { display: none; }
 .btn.loading { pointer-events: none; opacity: .7; }
+
+/* ── Mobile bottom navigation bar ────────────────────────── */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  padding: 6px 0 env(safe-area-inset-bottom, 6px);
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+}
+.bottom-nav-inner {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 10px;
+  transition: var(--transition);
+  min-width: 56px;
+}
+.bottom-nav a svg { width: 22px; height: 22px; }
+.bottom-nav a.active { color: var(--accent); }
+.bottom-nav a:active { background: var(--bg-input); }
 
