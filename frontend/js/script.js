@@ -4,6 +4,21 @@
 
 const API_BASE = '';   // Flask serves everything from the same origin
 
+// Force bottom-nav visible on mobile (handles cached HTML)
+(function(){
+  var bn = document.querySelector('.bottom-nav');
+  if (bn && window.innerWidth <= 768) {
+    bn.style.display = 'block';
+    document.body.style.paddingBottom = '68px';
+  }
+  window.addEventListener('resize', function(){
+    var b = document.querySelector('.bottom-nav');
+    if (!b) return;
+    if (window.innerWidth <= 768) { b.style.display = 'block'; document.body.style.paddingBottom = '68px'; }
+    else { b.style.display = 'none'; document.body.style.paddingBottom = ''; }
+  });
+})();
+
 async function getAuthHeaders() {
   if (!window.AppAuth) return {};
   await AppAuth.initAuth();
@@ -250,10 +265,6 @@ function renderSingleResult(data) {
   setText('res-filename', data.file || '—');
   setText('res-filetype', (data.type || '—').toUpperCase());
   setText('res-filesize', formatBytes(data.file_size || 0));
-  setText('res-confidence', `${Math.round((data.confidence || 0.5) * 100)}%`);
-
-  animateConfRing(data.confidence || 0.5, isSafe);
-
   if (isSafe) {
     setText('share-code-value', data.share_code || '——————');
     const copyBtn = document.getElementById('copy-code-btn');
@@ -352,19 +363,6 @@ function renderMultiResult(results) {
 function setText(id, val) {
   const el = document.getElementById(id);
   if (el) el.textContent = val;
-}
-
-function animateConfRing(confidence, safe) {
-  const circle = document.getElementById('conf-circle');
-  const label = document.getElementById('conf-label');
-  if (!circle) return;
-  const circumference = 226;
-  const pct = Math.round(confidence * 100);
-  circle.classList.add(safe ? 'safe' : 'malware');
-  setTimeout(() => {
-    circle.style.strokeDashoffset = circumference - (circumference * confidence);
-  }, 100);
-  if (label) label.textContent = `${pct}%`;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -504,7 +502,6 @@ async function loadDashboard() {
           <td><span class="badge badge-info">${(f.file_type || 'generic').toUpperCase()}</span></td>
           <td>${formatBytes(f.file_size || 0)}</td>
           <td><span class="badge ${isSafe ? 'badge-safe' : 'badge-malware'}">${f.scan_result || '—'}</span></td>
-          <td>${f.confidence != null ? Math.round(f.confidence * 100) + '%' : '—'}</td>
           <td>${f.share_code
           ? `<span class="share-code-inline" onclick="copyToClipboard('${f.share_code}')" title="Click to copy" style="cursor:pointer;font-family:monospace;font-weight:700;letter-spacing:.1em">${f.share_code}</span>`
           : '<span style="color:var(--danger)">Blocked</span>'}</td>

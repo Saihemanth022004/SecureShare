@@ -100,45 +100,50 @@ def _require_auth(fn):
     return wrapper
 
 
-# ── Static pages ──────────────────────────────────────────────────────────────
+# ── Static pages (no-cache so browsers always get latest HTML) ────────────────
+def _serve_html(filename):
+    resp = send_from_directory(FRONTEND_FOLDER, filename)
+    resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return resp
+
 @app.route('/')
 def index():
-    return send_from_directory(FRONTEND_FOLDER, 'index.html')
+    return _serve_html('index.html')
 
 @app.route('/login')
 def login_page():
-    return send_from_directory(FRONTEND_FOLDER, 'login.html')
+    return _serve_html('login.html')
 
 @app.route('/upload')
 def upload_page():
-    return send_from_directory(FRONTEND_FOLDER, 'upload.html')
+    return _serve_html('upload.html')
 
 @app.route('/download')
 def download_page():
-    return send_from_directory(FRONTEND_FOLDER, 'download.html')
+    return _serve_html('download.html')
 
 @app.route('/dashboard')
 def dashboard_page():
-    return send_from_directory(FRONTEND_FOLDER, 'dashboard.html')
+    return _serve_html('dashboard.html')
 
 @app.route('/profile')
 def profile_page():
-    return send_from_directory(FRONTEND_FOLDER, 'profile.html')
+    return _serve_html('profile.html')
 
 @app.route('/result')
 def result_page():
-    return send_from_directory(FRONTEND_FOLDER, 'result.html')
+    return _serve_html('result.html')
 
 @app.route('/css/<path:filename>')
 def serve_css(filename):
     resp = send_from_directory(os.path.join(FRONTEND_FOLDER, 'css'), filename)
-    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    resp.headers['Cache-Control'] = 'no-cache, must-revalidate'
     return resp
 
 @app.route('/js/<path:filename>')
 def serve_js(filename):
     resp = send_from_directory(os.path.join(FRONTEND_FOLDER, 'js'), filename)
-    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    resp.headers['Cache-Control'] = 'no-cache, must-revalidate'
     return resp
 
 
