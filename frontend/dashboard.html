@@ -56,18 +56,6 @@
         </div>
       </div>
 
-      <!-- Storage usage bar -->
-      <div class="card card-sm mb-24" id="storage-bar-card" style="margin-bottom:24px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <span style="font-weight:600;font-size:.9rem;display:inline-flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg> Storage Used</span>
-          <span id="storage-label" style="font-size:.85rem;color:var(--text-muted)">Loading…</span>
-        </div>
-        <div class="progress-bar" style="height:10px">
-          <div class="progress-fill" id="storage-fill"
-            style="width:0%;background:linear-gradient(90deg,#6366f1,#06b6d4)"></div>
-        </div>
-      </div>
-
       <!-- Stats row -->
       <div class="stats-row">
         <div class="stat-card">
@@ -181,27 +169,12 @@
           showToast('File deleted successfully', 'success');
           loadDashboard();
           loadExtras();
-          loadStorageStats();
         } else {
           showToast(data.error || 'Delete failed', 'error');
         }
       } catch {
         showToast('Network error', 'error');
       }
-    }
-
-    async function loadStorageStats() {
-      try {
-        const res = await fetch('/api/storage-stats', { headers: await getAuthHeaders() });
-        const data = await res.json();
-        const label = document.getElementById('storage-label');
-        const fill = document.getElementById('storage-fill');
-        const used = data.total_bytes || 0;
-        const MAX = 1 * 1024 * 1024 * 1024; // 1 GB display cap
-        const pct = Math.min(Math.round(used / MAX * 100), 100);
-        if (label) label.textContent = `${formatBytes(used)} used · ${data.file_count} file${data.file_count !== 1 ? 's' : ''}`;
-        if (fill) fill.style.width = `${pct}%`;
-      } catch { }
     }
 
     async function loadExtras() {
@@ -282,11 +255,10 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      loadStorageStats();
       loadExtras();
     });
     document.getElementById('refresh-btn') && document.getElementById('refresh-btn')
-      .addEventListener('click', () => { loadDashboard(); loadExtras(); loadStorageStats(); });
+      .addEventListener('click', () => { loadDashboard(); loadExtras(); });
   </script>
 </body>
 
