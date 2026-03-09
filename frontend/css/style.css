@@ -833,7 +833,13 @@ select.form-control {
   transition: var(--transition);
   min-width: 56px;
 }
-.bottom-nav a svg { width: 22px; height: 22px; }
+.bottom-nav a svg {
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px;
+  max-width: 22px;
+  flex-shrink: 0;
+}
 .bottom-nav a.active { color: var(--accent); }
 .bottom-nav a:active { background: var(--bg-input); }
 
