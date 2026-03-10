@@ -58,13 +58,13 @@ class EnsembleAnomalyDetector:
         if self.iso is not None:
             iso_s = self.iso.score_samples(X)          # shape (n,)
             # Typical range: [-1, 0].  Shift+scale so 0 = normal, 1 = anomaly
-            mal_iso = 1.0 / (1.0 + np.exp(10.0 * iso_s + 5.0))
+            mal_iso = 1.0 / (1.0 + np.exp(5.0 * iso_s + 3.0))
         else:
             mal_iso = np.full(n, 0.5)
 
         if self.ocsvm is not None:
             ocsvm_s = self.ocsvm.decision_function(X)  # pos = safe, neg = malware
-            mal_ocsvm = 1.0 / (1.0 + np.exp(ocsvm_s))
+            mal_ocsvm = 1.0 / (1.0 + np.exp(2.0 * ocsvm_s))
         else:
             mal_ocsvm = np.full(n, 0.5)
 

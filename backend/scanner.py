@@ -44,7 +44,7 @@ LOW_RISK_EXTENSIONS = {
     '.ttf', '.otf', '.woff', '.woff2',
 }
 
-ENTROPY_SAFE_THRESHOLD = 7.0
+ENTROPY_SAFE_THRESHOLD = 7.5
 
 
 def detect_file_type(filename: str) -> str:
@@ -93,7 +93,7 @@ def _parse_vt_stats(stats: dict) -> dict | None:
         return None
     malicious = stats.get('malicious', 0) + stats.get('suspicious', 0)
     total = sum(stats.values()) or 1
-    if malicious >= 3:
+    if malicious >= 5:
         return {
             'prediction': 'MALWARE',
             'confidence': round(min(0.5 + malicious / total, 0.99), 4),
@@ -223,7 +223,9 @@ def _heuristic_scan(file_type: str, features: dict) -> tuple:
             score += 2
         if features.get('F5', 0) > 0.5:
             score += 1
-        if score >= 3:
+        if features.get('F9', 0) > 0.85:
+            score += 1
+        if score >= 4:
             prediction = 'MALWARE'
             confidence = min(0.5 + score * 0.07, 0.92)
 
@@ -235,22 +237,33 @@ def _heuristic_scan(file_type: str, features: dict) -> tuple:
             score += 2
         if features.get('OpenAction', 0) > 0 and (features.get('JS', 0) > 0 or features.get('Javascript', 0) > 0):
             score += 2
-        if score >= 3:
+        if features.get('EmbeddedFile', 0) > 0:
+            score += 1
+        if score >= 4:
             prediction = 'MALWARE'
             confidence = min(0.5 + score * 0.07, 0.92)
 
     elif file_type in ('doc', 'docx'):
-        if features.get('macro_present', 0) and features.get('autoexec_macro', 0):
+        # Require macro + autoexec + at least one suspicious indicator
+        has_sus = (
+            features.get('powershell_usage', 0)
+            or features.get('shell_commands', 0)
+            or features.get('external_connections', 0)
+            or features.get('downloadfile_calls', 0)
+            or features.get('createobject_calls', 0)
+            or features.get('obfuscation_score', 0) > 5
+        )
+        if features.get('macro_present', 0) and features.get('autoexec_macro', 0) and has_sus:
             prediction = 'MALWARE'
             confidence = 0.82
-        elif features.get('powershell_usage', 0):
+        elif features.get('powershell_usage', 0) and features.get('macro_present', 0):
             prediction = 'MALWARE'
             confidence = 0.78
 
     else:
-        if entropy > 7.8:
+        if entropy > 7.95:
             prediction = 'MALWARE'
-            confidence = 0.65
+            confidence = 0.60
 
     return prediction, round(confidence, 4)
 
@@ -336,9 +349,17 @@ def scan_file(filepath: str, filename: str) -> dict:
             score      = float(model.decision_function(X)[0])
             confidence = float(1.0 / (1.0 + np.exp(-abs(score))))
 
-        # Generic files: require high ML confidence to flag as malware
-        if file_type == 'generic' and prediction == 'MALWARE' and confidence < 0.85:
-            print(f"[Scanner] '{filename}' → ML said MALWARE but low confidence ({confidence:.4f}), overriding to SAFE")
+        # Require minimum confidence per file type before flagging as malware
+        MALWARE_CONFIDENCE_THRESHOLDS = {
+            'exe':     0.75,
+            'pdf':     0.72,
+            'doc':     0.72,
+            'docx':    0.72,
+            'generic': 0.88,
+        }
+        min_conf = MALWARE_CONFIDENCE_THRESHOLDS.get(file_type, 0.88)
+        if prediction == 'MALWARE' and confidence < min_conf:
+            print(f"[Scanner] '{filename}' → ML said MALWARE but confidence ({confidence:.4f}) < threshold ({min_conf}), overriding to SAFE")
             prediction = 'SAFE'
             confidence = max(0.6, 1.0 - confidence)
 
