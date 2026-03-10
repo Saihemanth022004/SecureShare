@@ -106,6 +106,10 @@ def _serve_html(filename):
     resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return resp
 
+@app.route('/health')
+def health_check():
+    return 'OK', 200
+
 @app.route('/')
 def index():
     return _serve_html('index.html')
