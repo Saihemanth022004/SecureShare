@@ -44,7 +44,23 @@ LOW_RISK_EXTENSIONS = {
     '.ttf', '.otf', '.woff', '.woff2',
 }
 
+# File types that are inherently safe — skip ML entirely.
+# These are non-executable formats where high entropy is NORMAL
+# (e.g. JPEG uses DCT compression → entropy ~7.5-7.9).
+ALWAYS_SAFE_EXTENSIONS = {
+    '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.svg', '.ico', '.tiff',
+    '.mp3', '.wav', '.ogg', '.flac', '.aac', '.m4a', '.wma',
+    '.mp4', '.mkv', '.avi', '.mov', '.webm', '.flv', '.wmv',
+    '.txt', '.csv', '.json', '.xml', '.yaml', '.yml', '.md', '.rst', '.log',
+    '.ttf', '.otf', '.woff', '.woff2',
+    '.html', '.htm', '.css',
+}
+
 ENTROPY_SAFE_THRESHOLD = 7.5
+
+# In-memory scan cache: SHA-256 → result dict
+# Ensures identical files always get the same scan result
+_scan_cache = {}
 
 
 def detect_file_type(filename: str) -> str:
@@ -286,12 +302,31 @@ def scan_file(filepath: str, filename: str) -> dict:
         file_type = detect_file_type(filename)
         result['type'] = file_type
 
+        # ── Tier 0: inherently safe file types ────────────────────────────────
+        ext = os.path.splitext(filename)[1].lower()
+        if ext in ALWAYS_SAFE_EXTENSIONS:
+            result['prediction'] = 'SAFE'
+            result['confidence'] = 0.99
+            print(f"[Scanner] '{filename}' → Always-safe extension ({ext}) → SAFE")
+            return result
+
+        # ── Hash-based cache lookup ───────────────────────────────────────────
+        with open(filepath, 'rb') as f:
+            file_hash = hashlib.sha256(f.read()).hexdigest()
+        if file_hash in _scan_cache:
+            cached = _scan_cache[file_hash]
+            result['prediction'] = cached['prediction']
+            result['confidence'] = cached['confidence']
+            print(f"[Scanner] '{filename}' → Cache hit (hash={file_hash[:12]}) → {cached['prediction']}")
+            return result
+
         # ── Tier 1: instant hash lookup ───────────────────────────────────────
         vt = _vt_hash_lookup(filepath)
         if vt:
             result['prediction'] = vt['prediction']
             result['confidence'] = vt['confidence']
             print(f"[Scanner] '{filename}' → Tier 1 (hash) → {vt['prediction']}")
+            _scan_cache[file_hash] = {'prediction': vt['prediction'], 'confidence': vt['confidence']}
             return result
 
         # ── Tier 2: upload file for full VirusTotal scan ──────────────────────
@@ -300,6 +335,7 @@ def scan_file(filepath: str, filename: str) -> dict:
             result['prediction'] = vt['prediction']
             result['confidence'] = vt['confidence']
             print(f"[Scanner] '{filename}' → Tier 2 (upload) → {vt['prediction']}")
+            _scan_cache[file_hash] = {'prediction': vt['prediction'], 'confidence': vt['confidence']}
             return result
 
         # ── Tier 3: local heuristic + ML fallback ─────────────────────────────
@@ -365,6 +401,7 @@ def scan_file(filepath: str, filename: str) -> dict:
 
         result['prediction'] = prediction
         result['confidence'] = round(confidence, 4)
+        _scan_cache[file_hash] = {'prediction': prediction, 'confidence': round(confidence, 4)}
         print(f"[Scanner] '{filename}' → Tier 3 ML → {prediction} ({confidence:.2%})")
 
     except Exception as exc:
