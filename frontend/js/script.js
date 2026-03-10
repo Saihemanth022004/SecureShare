@@ -84,15 +84,15 @@ function getFileIcon(name = '') {
   const cog = '<circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
   const folder = '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>';
   const map = {
-    exe: [cog,'#ef4444'], dll: [cog,'#ef4444'],
-    pdf: [file,'#dc2626'], doc: [file,'#2563eb'], docx: [file,'#2563eb'],
-    xls: [file,'#16a34a'], xlsx: [file,'#16a34a'], csv: [file,'#16a34a'],
-    ppt: [file,'#ea580c'], pptx: [file,'#ea580c'],
-    zip: [pkg,'#8b5cf6'], rar: [pkg,'#8b5cf6'], '7z': [pkg,'#8b5cf6'], tar: [pkg,'#8b5cf6'], gz: [pkg,'#8b5cf6'],
-    png: [img,'#06b6d4'], jpg: [img,'#06b6d4'], jpeg: [img,'#06b6d4'], gif: [img,'#06b6d4'], bmp: [img,'#06b6d4'], webp: [img,'#06b6d4'],
-    mp3: [music,'#d946ef'], mp4: [video,'#d946ef'], avi: [video,'#d946ef'], mkv: [video,'#d946ef'],
-    py: [code,'#eab308'], js: [code,'#eab308'], ts: [code,'#3b82f6'], html: [code,'#f97316'], css: [code,'#06b6d4'],
-    txt: [file,'#71717a'],
+    exe: [cog, '#ef4444'], dll: [cog, '#ef4444'],
+    pdf: [file, '#dc2626'], doc: [file, '#2563eb'], docx: [file, '#2563eb'],
+    xls: [file, '#16a34a'], xlsx: [file, '#16a34a'], csv: [file, '#16a34a'],
+    ppt: [file, '#ea580c'], pptx: [file, '#ea580c'],
+    zip: [pkg, '#8b5cf6'], rar: [pkg, '#8b5cf6'], '7z': [pkg, '#8b5cf6'], tar: [pkg, '#8b5cf6'], gz: [pkg, '#8b5cf6'],
+    png: [img, '#06b6d4'], jpg: [img, '#06b6d4'], jpeg: [img, '#06b6d4'], gif: [img, '#06b6d4'], bmp: [img, '#06b6d4'], webp: [img, '#06b6d4'],
+    mp3: [music, '#d946ef'], mp4: [video, '#d946ef'], avi: [video, '#d946ef'], mkv: [video, '#d946ef'],
+    py: [code, '#eab308'], js: [code, '#eab308'], ts: [code, '#3b82f6'], html: [code, '#f97316'], css: [code, '#06b6d4'],
+    txt: [file, '#71717a'],
   };
   const [d, c] = map[ext] || [folder, '#71717a'];
   return s(c, d);
@@ -195,11 +195,14 @@ function initUploadPage() {
 
     if (results.length === 1) {
       // Single file — go to result page as before
-      sessionStorage.setItem('scan_result', JSON.stringify(results[0]));
+      const data = results[0];
+      data._timestamp = Date.now();
+      sessionStorage.setItem('scan_result', JSON.stringify(data));
       setTimeout(() => { window.location.href = '/result'; }, 400);
     } else {
       // Multi-file — save array and go to result
-      sessionStorage.setItem('scan_result', JSON.stringify({ results }));
+      const data = { results, _timestamp: Date.now() };
+      sessionStorage.setItem('scan_result', JSON.stringify(data));
       setTimeout(() => { window.location.href = '/result'; }, 400);
     }
   });
@@ -219,6 +222,16 @@ function initResultPage() {
   if (!raw) { window.location.href = '/upload'; return; }
 
   const payload = JSON.parse(raw);
+
+  // Expire stale results (older than 5 minutes)
+  if (payload._timestamp && (Date.now() - payload._timestamp) > 5 * 60 * 1000) {
+    sessionStorage.removeItem('scan_result');
+    window.location.href = '/upload';
+    return;
+  }
+
+  // Clear after reading so stale results don't persist
+  sessionStorage.removeItem('scan_result');
 
   // Multi-file result
   if (payload.results) {
@@ -629,7 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     if (page === 'download') initDownloadPage();
     if (window.AppAuth) {
-      AppAuth.initAuth().then(() => AppAuth.addAuthNav()).catch(() => {});
+      AppAuth.initAuth().then(() => AppAuth.addAuthNav()).catch(() => { });
     }
   }
 });

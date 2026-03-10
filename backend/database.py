@@ -46,6 +46,27 @@ def add_file(filename, original_filename, file_hash, file_type, file_size, filep
     return ref.id
 
 
+def get_scan_result_by_hash(file_hash):
+    """Look up if a file with this hash was previously scanned as SAFE."""
+    try:
+        docs = (get_db().collection('files')
+                .where('file_hash', '==', file_hash)
+                .where('scan_result', '==', 'SAFE')
+                .limit(1)
+                .stream())
+        for doc in docs:
+            data = doc.to_dict()
+            return {
+                'prediction': data.get('scan_result', 'SAFE'),
+                'confidence': data.get('confidence', 0.95),
+                'type': data.get('file_type', 'generic'),
+                'cached': True,
+            }
+    except Exception:
+        pass
+    return None
+
+
 def update_scan_result(file_id, scan_result, confidence):
     get_db().collection('files').document(str(file_id)).set(
         {'scan_result': scan_result, 'confidence': confidence},

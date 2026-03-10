@@ -222,7 +222,21 @@ def upload_file():
 
             file_hash   = utils.generate_sha256(tmp_path)
             file_type   = scanner.detect_file_type(original_filename)
-            scan_result = scanner.scan_file(tmp_path, original_filename)
+
+            # Reuse scan result if same file was previously scanned as SAFE
+            cached_result = database.get_scan_result_by_hash(file_hash)
+            if cached_result:
+                scan_result = {
+                    'filename': original_filename,
+                    'type': cached_result['type'],
+                    'prediction': cached_result['prediction'],
+                    'confidence': cached_result['confidence'],
+                    'features': {},
+                    'error': None,
+                }
+                print(f"[Upload] '{original_filename}' → Reusing previous SAFE result (hash match)")
+            else:
+                scan_result = scanner.scan_file(tmp_path, original_filename)
 
             file_id = database.add_file(
                 filename=unique_name,
