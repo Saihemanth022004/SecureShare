@@ -31,7 +31,7 @@ import database
 import model_loader
 import scanner
 import utils
-from firebase_service import download_bytes, init_firebase, upload_bytes, verify_id_token
+from firebase_service import download_bytes, upload_bytes, verify_id_token
 
 
 
@@ -70,9 +70,8 @@ limiter = Limiter(
     storage_uri='memory://',
 )
 
-init_firebase()
-database.init_db()
-model_loader.load_all()
+# Firebase, Firestore health init, and ML models load lazily on first use
+# so static pages and /health respond immediately after import.
 
 
 def allowed_file(filename: str) -> bool:
@@ -138,17 +137,21 @@ def profile_page():
 def result_page():
     return _serve_html('result.html')
 
+def _static_cache_headers(resp):
+    """Long cache for versioned assets; bump ?v= in HTML when files change."""
+    resp.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    return resp
+
+
 @app.route('/css/<path:filename>')
 def serve_css(filename):
     resp = send_from_directory(os.path.join(FRONTEND_FOLDER, 'css'), filename)
-    resp.headers['Cache-Control'] = 'no-cache, must-revalidate'
-    return resp
+    return _static_cache_headers(resp)
 
 @app.route('/js/<path:filename>')
 def serve_js(filename):
     resp = send_from_directory(os.path.join(FRONTEND_FOLDER, 'js'), filename)
-    resp.headers['Cache-Control'] = 'no-cache, must-revalidate'
-    return resp
+    return _static_cache_headers(resp)
 
 
 # ── Firebase config (served to frontend) ─────────────────────────────────────

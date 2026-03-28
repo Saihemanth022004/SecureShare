@@ -551,7 +551,7 @@ async function initProfilePage() {
       .slice(0, 2)
       .map(part => part[0].toUpperCase())
       .join('') || 'U';
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><rect width="100%" height="100%" fill="#18181b"/><text x="50%" y="54%" font-size="46" fill="#ffffff" text-anchor="middle" dominant-baseline="middle" font-family="Inter,Arial,sans-serif">${initials}</text></svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><rect width="100%" height="100%" fill="#18181b"/><text x="50%" y="54%" font-size="46" fill="#ffffff" text-anchor="middle" dominant-baseline="middle" font-family="system-ui,Arial,sans-serif">${initials}</text></svg>`;
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }
 

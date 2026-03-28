@@ -1,12 +1,22 @@
 (function () {
   let authReady = null;
 
+  const CFG_KEY = 'ss_fb_cfg_v1';
   let _cfgCache = null;
   async function getFirebaseConfig() {
     if (_cfgCache) return _cfgCache;
-    localStorage.removeItem('firebase_config');
+    try {
+      const raw = sessionStorage.getItem(CFG_KEY);
+      if (raw) {
+        _cfgCache = JSON.parse(raw);
+        return _cfgCache;
+      }
+    } catch (_) {}
     const res = await fetch('/api/firebase-config');
     _cfgCache = await res.json();
+    try {
+      sessionStorage.setItem(CFG_KEY, JSON.stringify(_cfgCache));
+    } catch (_) {}
     return _cfgCache;
   }
 

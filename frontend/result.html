@@ -5,11 +5,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Scan Result – SecureShare</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="/css/style.css?v=7" />
+  <link rel="dns-prefetch" href="https://www.gstatic.com" />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preload" href="/css/style.css?v=5" as="style" />
+  <link rel="preload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" as="script" crossorigin />
+  <link rel="preload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" as="script" crossorigin />
+  <link rel="stylesheet" href="/css/style.css?v=5" />
 </head>
 
 <body data-page="result">
@@ -181,7 +182,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="/js/auth.js"></script>
-  <script src="/js/script.js?v=3"></script>
+  <script src="/js/script.js?v=5"></script>
   <script>
     // Extra: populate blocked section fields too
     document.addEventListener('DOMContentLoaded', () => {

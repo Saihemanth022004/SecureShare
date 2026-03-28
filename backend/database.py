@@ -5,9 +5,19 @@ from firebase_admin import firestore
 
 from firebase_service import get_db as _firebase_get_db
 
+_db_health_ok = False
+
 
 def get_db():
-    return _firebase_get_db()
+    global _db_health_ok
+    db = _firebase_get_db()
+    if not _db_health_ok:
+        _db_health_ok = True
+        try:
+            db.collection('_health').document('init').set({'ts': _now_iso()}, merge=True)
+        except Exception:
+            pass
+    return db
 
 
 def _now_iso() -> str:
@@ -22,8 +32,8 @@ def _doc_to_dict(doc) -> Dict[str, Any]:
 
 
 def init_db():
-    # Firestore is schema-less; this verifies connectivity.
-    get_db().collection('_health').document('init').set({'ts': _now_iso()}, merge=True)
+    """Compatibility: first real DB use performs the health write via get_db()."""
+    get_db()
 
 
 def add_file(filename, original_filename, file_hash, file_type, file_size, filepath, owner_uid=None):
