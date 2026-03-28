@@ -287,7 +287,7 @@ function renderSingleResult(data) {
       }
     }
 
-    // ── Multi-Engine (VirusTotal) panel ──────────────────────────
+    // ── Multi-engine (MetaDefender / Filescan) scan result ───────
 
     const safeSection = document.getElementById('safe-section');
     if (safeSection) safeSection.classList.remove('hidden');

@@ -10,11 +10,27 @@ import requests
 from feature_extractor import extract_features
 from model_loader import get_model, get_scaler, get_features
 
-_THREAT_KEY = os.getenv('THREAT_API_KEY', '')
-_VT_BASE = 'https://www.virustotal.com/api/v3'
-_VT_UPLOAD_MAX = 32 * 1024 * 1024  # 32 MB
-_VT_POLL_TIMEOUT = 60              # seconds to wait for scan results
-_VT_POLL_INTERVAL = 10             # seconds between polls
+# MetaDefender-class cloud scan via Filescan.io (https://www.filescan.io)
+_FILESCAN_KEY = os.getenv('FILESCAN_API_KEY', '') or os.getenv('METADEFENDER_API_KEY', '')
+_FILESCAN_BASE = os.getenv('FILESCAN_BASE_URL', 'https://www.filescan.io').rstrip('/')
+_FILESCAN_UPLOAD_MAX = 50 * 1024 * 1024  # match app upload cap
+_FILESCAN_POLL_TIMEOUT = 90
+_FILESCAN_POLL_INTERVAL = 2
+
+# Filescan.io API — same filter list as official CLI (filescanio/fsio-cli)
+_FILESCAN_REPORT_FILTERS = [
+    'general', 'allSignalGroups', 'allTags', 'overallState',
+    'positionInQueue', 'taskReference', 'subtaskReferences',
+    'finalVerdict', 'fd:fileDownloadResults', 'fd:extractedUrls',
+    'dr:domainResolveResults', 'v:visualizedSample.compressedBase64',
+    'v:renderedImages', 'wi:whoisLookupResults', 'f:all', 'o:all',
+]
+_FILESCAN_REPORT_SORTS = [
+    'allSignalGroups(description:asc,allMitreTechniques:desc,averageSignalStrength:desc)',
+    'allOsintTags(tag.name:asc)',
+    'f:disassemblySections(levelOfInformation:desc)',
+    'f:extendedData.importsEx(module.suspicious:desc)',
+]
 
 # File-extension → logical type
 EXT_MAP = {
@@ -103,123 +119,136 @@ def _map_prediction(raw) -> str:
     return 'SAFE'
 
 
-def _parse_vt_stats(stats: dict) -> dict | None:
-    """Convert VirusTotal analysis_stats into a prediction + confidence."""
-    if not stats:
+def _filescan_report_query_params() -> list[tuple[str, str]]:
+    """Build query string for GET /api/scan/{id}/report (multi-value filter/sort)."""
+    params: list[tuple[str, str]] = []
+    for f in _FILESCAN_REPORT_FILTERS:
+        params.append(('filter', f))
+    for s in _FILESCAN_REPORT_SORTS:
+        params.append(('sort', s))
+    return params
+
+
+def _filescan_verdict_from_report(rep: dict) -> dict | None:
+    """Map a single Filescan report object to prediction + confidence."""
+    if rep.get('overallState') != 'success':
         return None
-    malicious = stats.get('malicious', 0) + stats.get('suspicious', 0)
-    total = sum(stats.values()) or 1
-    if malicious >= 5:
-        return {
-            'prediction': 'MALWARE',
-            'confidence': round(min(0.5 + malicious / total, 0.99), 4),
+    verdict_raw = rep.get('verdict')
+    if verdict_raw is None and isinstance(rep.get('finalVerdict'), dict):
+        verdict_raw = rep['finalVerdict'].get('verdict', '')
+    v = str(verdict_raw).lower().strip()
+    if v in ('malicious', 'likely_malicious'):
+        return {'prediction': 'MALWARE', 'confidence': 0.92}
+    if v == 'suspicious':
+        return {'prediction': 'MALWARE', 'confidence': 0.78}
+    if v == 'unknown':
+        return {'prediction': 'SAFE', 'confidence': 0.62}
+    if v in ('', 'clean', 'safe', 'benign', 'no_threats', 'not_malicious'):
+        return {'prediction': 'SAFE', 'confidence': 0.88}
+    return {'prediction': 'SAFE', 'confidence': 0.75}
+
+
+def _filescan_aggregate_scan_reports(scan_report: dict) -> dict | None:
+    """Combine per-file reports; any MALWARE wins."""
+    reports = scan_report.get('reports') or {}
+    if not reports:
+        return None
+    if not scan_report.get('allFinished'):
+        return None
+    merged: dict | None = None
+    for rep in reports.values():
+        one = _filescan_verdict_from_report(rep)
+        if one is None:
+            continue
+        if merged is None:
+            merged = one
+            continue
+        if one['prediction'] == 'MALWARE' or merged['prediction'] == 'MALWARE':
+            merged = {
+                'prediction': 'MALWARE',
+                'confidence': round(max(merged['confidence'], one['confidence']), 4),
+            }
+        else:
+            merged = {
+                'prediction': 'SAFE',
+                'confidence': round(min(merged['confidence'], one['confidence']), 4),
+            }
+    return merged
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Cloud: Filescan.io (MetaDefender-class) — upload + poll
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _filescan_upload_scan(filepath: str, filename: str) -> dict | None:
+    if not _FILESCAN_KEY:
+        return None
+    try:
+        size = os.path.getsize(filepath)
+        if size > _FILESCAN_UPLOAD_MAX:
+            print(f"[Filescan] File too large ({size} bytes), skipping")
+            return None
+
+        url = f'{_FILESCAN_BASE}/api/scan/file'
+        headers = {
+            'X-Api-Key': _FILESCAN_KEY,
+            'accept': 'application/json',
+            'User-Agent': 'SecureShare/1.0',
         }
-    return {
-        'prediction': 'SAFE',
-        'confidence': round(max(1.0 - malicious / total, 0.75), 4),
-    }
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  Tier 1: Hash Lookup (instant, no upload)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def _vt_hash_lookup(filepath: str) -> dict | None:
-    if not _THREAT_KEY:
-        return None
-    try:
-        with open(filepath, 'rb') as f:
-            sha = hashlib.sha256(f.read()).hexdigest()
-        print(f"[VT] Hash lookup: {sha[:16]}...")
-        resp = requests.get(
-            f'{_VT_BASE}/files/{sha}',
-            headers={'x-apikey': _THREAT_KEY},
-            timeout=15,
-        )
-        if resp.status_code != 200:
-            print(f"[VT] Hash not found (status {resp.status_code})")
-            return None
-        stats = (resp.json()
-                 .get('data', {})
-                 .get('attributes', {})
-                 .get('last_analysis_stats', {}))
-        result = _parse_vt_stats(stats)
-        if result:
-            print(f"[VT] Hash lookup → {result['prediction']}")
-        return result
-    except Exception as exc:
-        print(f"[VT] Hash lookup error: {exc}")
-        return None
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  Tier 2: Upload file for full scan (70+ engines)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def _vt_upload_scan(filepath: str) -> dict | None:
-    if not _THREAT_KEY:
-        return None
-    try:
-        file_size = os.path.getsize(filepath)
-        if file_size > _VT_UPLOAD_MAX:
-            print(f"[VT] File too large for upload ({file_size} bytes), skipping")
-            return None
-
-        print(f"[VT] Uploading file for scan ({file_size} bytes)...")
-        with open(filepath, 'rb') as f:
+        print(f"[Filescan] Uploading {filename!r} ({size} bytes)...")
+        with open(filepath, 'rb') as fh:
             resp = requests.post(
-                f'{_VT_BASE}/files',
-                headers={'x-apikey': _THREAT_KEY},
-                files={'file': ('scan_file', f)},
-                timeout=30,
+                url,
+                headers=headers,
+                files={'file': (filename, fh, 'application/octet-stream')},
+                timeout=120,
             )
-
         if resp.status_code not in (200, 201):
-            print(f"[VT] Upload failed (status {resp.status_code})")
+            detail = resp.text[:500]
+            print(f"[Filescan] Upload failed HTTP {resp.status_code}: {detail}")
             return None
 
-        analysis_id = (resp.json()
-                       .get('data', {})
-                       .get('id', ''))
-        if not analysis_id:
-            print("[VT] No analysis ID returned")
+        body = resp.json()
+        flow_id = body.get('flow_id') or body.get('flowId')
+        if not flow_id:
+            print(f"[Filescan] No flow_id in response: {body!r}")
             return None
 
-        print(f"[VT] Upload OK, polling analysis {analysis_id[:20]}...")
+        report_url = f'{_FILESCAN_BASE}/api/scan/{flow_id}/report'
+        params = _filescan_report_query_params()
+        deadline = time.time() + _FILESCAN_POLL_TIMEOUT
 
-        deadline = time.time() + _VT_POLL_TIMEOUT
         while time.time() < deadline:
-            time.sleep(_VT_POLL_INTERVAL)
+            time.sleep(_FILESCAN_POLL_INTERVAL)
             poll = requests.get(
-                f'{_VT_BASE}/analyses/{analysis_id}',
-                headers={'x-apikey': _THREAT_KEY},
-                timeout=15,
+                report_url,
+                headers=headers,
+                params=params,
+                timeout=60,
             )
             if poll.status_code != 200:
+                print(f"[Filescan] Poll HTTP {poll.status_code}")
                 continue
 
-            attrs = poll.json().get('data', {}).get('attributes', {})
-            status = attrs.get('status', '')
-
-            if status == 'completed':
-                stats = attrs.get('stats', {})
-                result = _parse_vt_stats(stats)
+            scan_report = poll.json()
+            if scan_report.get('allFinished'):
+                result = _filescan_aggregate_scan_reports(scan_report)
                 if result:
-                    print(f"[VT] Scan complete → {result['prediction']}")
-                return result
+                    print(f"[Filescan] Scan complete -> {result['prediction']}")
+                    return result
+                print('[Filescan] Scan finished but verdict not available, falling back')
+                return None
 
-            print(f"[VT] Still scanning (status={status})...")
-
-        print("[VT] Scan timed out, falling back")
+        print('[Filescan] Poll timed out, falling back')
         return None
 
     except Exception as exc:
-        print(f"[VT] Upload scan error: {exc}")
+        print(f"[Filescan] Error: {exc}")
         return None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  Tier 3: Heuristic + ML fallback
+#  Local: Heuristic + ML fallback
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def _heuristic_scan(file_type: str, features: dict) -> tuple:
@@ -285,7 +314,7 @@ def _heuristic_scan(file_type: str, features: dict) -> tuple:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  Main scan entry point — 3-tier pipeline
+#  Main scan entry point: safe-list / cache / MetaDefender (Filescan) / local ML
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def scan_file(filepath: str, filename: str) -> dict:
@@ -307,7 +336,7 @@ def scan_file(filepath: str, filename: str) -> dict:
         if ext in ALWAYS_SAFE_EXTENSIONS:
             result['prediction'] = 'SAFE'
             result['confidence'] = 0.99
-            print(f"[Scanner] '{filename}' → Always-safe extension ({ext}) → SAFE")
+            print(f"[Scanner] '{filename}' -> Always-safe extension ({ext}) -> SAFE")
             return result
 
         # ── Hash-based cache lookup ───────────────────────────────────────────
@@ -317,29 +346,24 @@ def scan_file(filepath: str, filename: str) -> dict:
             cached = _scan_cache[file_hash]
             result['prediction'] = cached['prediction']
             result['confidence'] = cached['confidence']
-            print(f"[Scanner] '{filename}' → Cache hit (hash={file_hash[:12]}) → {cached['prediction']}")
+            print(f"[Scanner] '{filename}' -> Cache hit (hash={file_hash[:12]}) -> {cached['prediction']}")
             return result
 
-        # ── Tier 1: instant hash lookup ───────────────────────────────────────
-        vt = _vt_hash_lookup(filepath)
-        if vt:
-            result['prediction'] = vt['prediction']
-            result['confidence'] = vt['confidence']
-            print(f"[Scanner] '{filename}' → Tier 1 (hash) → {vt['prediction']}")
-            _scan_cache[file_hash] = {'prediction': vt['prediction'], 'confidence': vt['confidence']}
-            return result
+        # ── Tier 1: MetaDefender (Filescan.io cloud) ───────────────────────────
+        if _FILESCAN_KEY:
+            fs = _filescan_upload_scan(filepath, filename)
+            if fs:
+                result['prediction'] = fs['prediction']
+                result['confidence'] = fs['confidence']
+                print(f"[Scanner] '{filename}' -> Tier 1 (MetaDefender/Filescan) -> {fs['prediction']}")
+                _scan_cache[file_hash] = {
+                    'prediction': fs['prediction'],
+                    'confidence': fs['confidence'],
+                }
+                return result
 
-        # ── Tier 2: upload file for full VirusTotal scan ──────────────────────
-        vt = _vt_upload_scan(filepath)
-        if vt:
-            result['prediction'] = vt['prediction']
-            result['confidence'] = vt['confidence']
-            print(f"[Scanner] '{filename}' → Tier 2 (upload) → {vt['prediction']}")
-            _scan_cache[file_hash] = {'prediction': vt['prediction'], 'confidence': vt['confidence']}
-            return result
-
-        # ── Tier 3: local heuristic + ML fallback ─────────────────────────────
-        print(f"[Scanner] '{filename}' → Tier 3 (local scan)")
+        # ── Tier 2: local heuristic + ML fallback ─────────────────────────────
+        print(f"[Scanner] '{filename}' -> Tier 2 (local scan)")
 
         # Low-risk file types with normal entropy are almost certainly safe
         if _is_low_risk(filename) and file_type == 'generic':
@@ -347,9 +371,9 @@ def scan_file(filepath: str, filename: str) -> dict:
             if entropy < ENTROPY_SAFE_THRESHOLD:
                 result['prediction'] = 'SAFE'
                 result['confidence'] = round(max(0.85, 1.0 - entropy / 10.0), 4)
-                print(f"[Scanner] '{filename}' → Low-risk ext, entropy={entropy:.2f} → SAFE")
+                print(f"[Scanner] '{filename}' -> Low-risk ext, entropy={entropy:.2f} -> SAFE")
                 return result
-            print(f"[Scanner] '{filename}' → Low-risk ext but high entropy={entropy:.2f}, running ML")
+            print(f"[Scanner] '{filename}' -> Low-risk ext but high entropy={entropy:.2f}, running ML")
 
         raw_features = extract_features(filepath, file_type)
         result['features'] = raw_features
@@ -395,14 +419,14 @@ def scan_file(filepath: str, filename: str) -> dict:
         }
         min_conf = MALWARE_CONFIDENCE_THRESHOLDS.get(file_type, 0.88)
         if prediction == 'MALWARE' and confidence < min_conf:
-            print(f"[Scanner] '{filename}' → ML said MALWARE but confidence ({confidence:.4f}) < threshold ({min_conf}), overriding to SAFE")
+            print(f"[Scanner] '{filename}' -> ML said MALWARE but confidence ({confidence:.4f}) < threshold ({min_conf}), overriding to SAFE")
             prediction = 'SAFE'
             confidence = max(0.6, 1.0 - confidence)
 
         result['prediction'] = prediction
         result['confidence'] = round(confidence, 4)
         _scan_cache[file_hash] = {'prediction': prediction, 'confidence': round(confidence, 4)}
-        print(f"[Scanner] '{filename}' → Tier 3 ML → {prediction} ({confidence:.2%})")
+        print(f"[Scanner] '{filename}' -> Tier 2 ML -> {prediction} ({confidence:.2%})")
 
     except Exception as exc:
         result['error']      = str(exc)
